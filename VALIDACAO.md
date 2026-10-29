@@ -36,9 +36,11 @@ O relatório não estabelece diferenças causais ou testa igualdade de xi pela s
 
 `renv.lock` fixa as versões e `renv/activate.R` fornece o bootstrap oficial do renv 1.1.5.
 As análises e a renderização foram executadas com as dependências disponíveis neste ambiente.
-A restauração integral em uma instalação R padrão e a execução remota do Actions devem
-ser confirmadas pela CI; o ambiente local usa uma instalação R relocada e não permite
-testar essa restauração como se fosse uma instalação padrão. Nenhum sucesso de CI é presumido.
+A execução remota no GitHub Actions confirmou com sucesso a restauração das dependências,
+o download do CSV, os testes, a análise, a renderização e o upload dos artefatos.
+Execução: https://github.com/thiagojk/TVE-ELEICOES/actions/runs/40885971361
+O job `build` terminou com sucesso. O job `deploy` falhou com HTTP 404, e seu log solicita
+ativar o GitHub Pages nas configurações do repositório. O site ainda não está publicado.
 
 O workflow está configurado, mas a ativação de Pages é uma configuração do GitHub:
 selecione Settings → Pages → GitHub Actions. A ferramenta conectada disponível não
