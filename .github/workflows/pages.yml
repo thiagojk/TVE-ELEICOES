@@ -1,0 +1,61 @@
+name: Analisar e publicar Quarto
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      TVE_BOOTSTRAP: '199'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.5.0'
+          use-public-rspm: true
+      - uses: r-lib/actions/setup-renv@v2
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: '1.7.32'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Baixar dados fornecidos
+        run: |
+          python -m pip install gdown==5.2.0
+          python scripts/download_data.py
+      - name: Testar e analisar
+        run: |
+          Rscript tests/run.R
+          Rscript scripts/run.R
+      - name: Renderizar relatório
+        run: quarto render
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resultados-estatisticos
+          path: |
+            tables/
+            figures/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4

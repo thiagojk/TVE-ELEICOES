@@ -1,0 +1,21 @@
+REGIAO,candidato,cenario,n,uns,zeros,acima_99,maximo
+Norte,LULA,registros_completos,43702,0,0,58,0.997032640949555
+Norte,FLAVIO BOLSONARO,registros_completos,43702,0,0,1,0.995475113122172
+Nordeste,LULA,registros_completos,140799,0,0,28,0.995833333333333
+Nordeste,FLAVIO BOLSONARO,registros_completos,140799,0,0,0,0.985915492957746
+Centro-Oeste,LULA,registros_completos,38042,0,0,8,0.996598639455782
+Centro-Oeste,FLAVIO BOLSONARO,registros_completos,38042,0,0,0,0.957446808510638
+Sudeste,LULA,registros_completos,203234,0,0,3,0.995192307692308
+Sudeste,FLAVIO BOLSONARO,registros_completos,203234,0,0,0,0.944881889763779
+Sul,LULA,registros_completos,72010,0,0,1,0.990536277602524
+Sul,FLAVIO BOLSONARO,registros_completos,72010,0,0,2,0.993630573248408
+Norte,LULA,HIPOTESE_ausencia_igual_zero,43769,65,2,123,1
+Norte,FLAVIO BOLSONARO,HIPOTESE_ausencia_igual_zero,43769,2,65,3,1
+Nordeste,LULA,HIPOTESE_ausencia_igual_zero,140828,29,0,57,1
+Nordeste,FLAVIO BOLSONARO,HIPOTESE_ausencia_igual_zero,140828,0,29,0,0.985915492957746
+Centro-Oeste,LULA,HIPOTESE_ausencia_igual_zero,38048,6,0,14,1
+Centro-Oeste,FLAVIO BOLSONARO,HIPOTESE_ausencia_igual_zero,38048,0,6,0,0.957446808510638
+Sudeste,LULA,HIPOTESE_ausencia_igual_zero,203237,3,0,6,1
+Sudeste,FLAVIO BOLSONARO,HIPOTESE_ausencia_igual_zero,203237,0,3,0,0.944881889763779
+Sul,LULA,HIPOTESE_ausencia_igual_zero,72015,3,2,4,1
+Sul,FLAVIO BOLSONARO,HIPOTESE_ausencia_igual_zero,72015,2,3,4,1

@@ -1,0 +1,11 @@
+REGIAO,candidato,modelo,n,status,u,excedencias,avisos,loc,loc_se_iid,loc_lo_iid,loc_hi_iid,scale,scale_se_iid,scale_lo_iid,scale_hi_iid,shape,shape_se_iid,shape_lo_iid,shape_hi_iid
+Norte,LULA,GEV,252,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Norte,FLAVIO BOLSONARO,GEV,252,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Nordeste,LULA,GEV,808,nao_regular,,,"xi <= -0.5: IC de Wald não regular, omitido",0.880522495254875,,,,0.0899121013309014,,,,-0.778070378711899,,,
+Nordeste,FLAVIO BOLSONARO,GEV,808,ajuste_exploratorio,,,"",0.411363022690337,0.004027371077867,0.403469375377718,0.419256670002956,0.104757493801084,0.00279656452538416,0.0992762273313312,0.110238760270837,-0.121770187701126,0.0185334347601397,-0.158095719831,-0.0854446555712525
+Centro-Oeste,LULA,GEV,217,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Centro-Oeste,FLAVIO BOLSONARO,GEV,217,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Sudeste,LULA,GEV,912,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Sudeste,FLAVIO BOLSONARO,GEV,912,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Sul,LULA,GEV,451,tamanhos_heterogeneos,,,,,,,,,,,,,,,
+Sul,FLAVIO BOLSONARO,GEV,451,tamanhos_heterogeneos,,,,,,,,,,,,,,,

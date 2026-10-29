@@ -1,0 +1,313 @@
+---
+title: "Concentrações extremas de votos: uma análise por região"
+author: "Projeto acadêmico — TVE"
+---
+
+```{r}
+#| include: false
+library(data.table)
+ready <- file.exists("data/processed/CONCLUIDO")
+tab <- function(name) {
+  f <- file.path("tables",paste0(name,".csv"))
+  if(ready && file.exists(f) && file.info(f)$size>2) {
+    x<-fread(f)
+    fields<-switch(name,
+      gpd=c("REGIAO","candidato","u","excedencias","scale","shape","status"),
+      gev=c("REGIAO","candidato","n","loc","scale","shape","status"),
+      intervalos_cluster=c("REGIAO","candidato","modelo","n_sucessos","bootstrap_valido","shape_lo_cluster","shape_hi_cluster","endpoint_lo","endpoint_hi"),NULL)
+    if(!is.null(fields)) x<-x[,intersect(fields,names(x)),with=FALSE]
+    if(name=="comparacao_forma" && "shape"%in%names(x)) {
+      x[,estimativa_IC:=ifelse(is.na(shape),status,
+        paste0(sprintf("%.3f",shape),ifelse(!is.na(shape_lo_cluster),
+          paste0(" [",sprintf("%.3f",shape_lo_cluster),"; ",sprintf("%.3f",shape_hi_cluster),"]")," [IC indisponível]")))]
+      x<-dcast(x,REGIAO+candidato~modelo,value.var="estimativa_IC")
+    }
+    if(nrow(x))knitr::asis_output(paste0('<div style="overflow-x:auto">',knitr::kable(x,format="html",digits=4),'</div>')) else cat("Sem ajustes elegíveis ou registros nesta tabela.")
+  } else cat("Resultado ainda não disponível: requer execução completa e validação da base.")
+}
+fig <- function(name) {
+  f<-file.path("figures",paste0(name,".png"))
+  if(ready && file.exists(f))knitr::include_graphics(f) else cat("Gráfico pendente.")
+}
+```
+
+# Introdução
+
+As proporções de votos por seção descrevem concentrações locais de apoio entre os votos
+válidos dos dois candidatos. A TVE oferece aproximações para caudas e máximos, cuja
+adequação depende da unidade observacional, do limiar e da estrutura de dependência.
+Este estudo descreve essas distribuições sem interpretações causais ou normativas.
+O trabalho de OPME fornecido pelo usuário orientou a sequência teoria–métodos–diagnósticos–discussão;
+seus modelos de custos não foram transferidos para as proporções eleitorais.
+
+# Objetivos
+
+Investigar como se comportam as concentrações extremas de votos de LULA e FLAVIO BOLSONARO
+nas cinco regiões brasileiras, conforme as categorias efetivamente encontradas na base
+fornecida, e comparar as estimativas de forma por POT/GPD e máximos de blocos/GEV.
+
+# Referencial teórico
+
+## TVE e máximos de blocos
+
+Sob condições de domínio de atração e normalização, a distribuição dos máximos converge
+para uma GEV [@coles2001]:
+
+$$G(x)=\exp\left\{-\left[1+\xi\frac{x-\mu}{\sigma}\right]^{-1/\xi}\right\},
+\quad 1+\xi(x-\mu)/\sigma>0,\ \sigma>0.$$
+
+O limite em $\xi=0$ corresponde à distribuição de Gumbel. A abordagem requer blocos
+com máximos comparáveis; tamanhos muito distintos alteram a distribuição dos máximos,
+mesmo quando as seções têm a mesma distribuição marginal.
+
+## POT e GPD
+
+Para um limiar alto $u$, a distribuição condicional dos excessos $Y=P-u\mid P>u$
+pode ser aproximada pela GPD [@balkema1974; @pickands1975]:
+
+$$H(y)=1-(1+\xi y/\sigma_u)^{-1/\xi},\quad y>0,\quad 1+\xi y/\sigma_u>0.$$
+
+A média residual, quando $\xi<1$, é aproximadamente linear no limiar e a escala modificada
+$\sigma_u-\xi u$ deve ser aproximadamente constante. Essa motivação orienta os gráficos
+de estabilidade; ela não constitui um teste definitivo de adequação.
+
+## Relação GEV–GPD e suporte limitado
+
+As duas aproximações compartilham o parâmetro de forma no limite assintótico, sob condições
+compatíveis de amostragem. Como $0\le P\le1$, há um limite superior conhecido. Para
+$\xi<0$, o endpoint GPD é $u-\sigma_u/\xi$; para a GEV é $\mu-\sigma/\xi$.
+Um endpoint abaixo de 1 pode refletir suporte efetivo local ou aproximação inadequada;
+um endpoint acima de 1 contradiz o suporte matemático para extrapolação.
+Não truncamos estimativas artificialmente em 1 para esconder a discrepância.
+
+Os dados são discretos: a resolução de $P$ depende do total de votos. Uma massa em 1 pode
+dominar os máximos; a aproximação contínua nesse caso é apenas um diagnóstico exploratório.
+Não se presume $\xi<0$. A regularidade da máxima verossimilhança também falha em parte
+do espaço paramétrico, especialmente quando $\xi\le-1/2$ [@smith1985].
+
+# Metodologia
+
+## Fonte, unidade e validação
+
+A base é fornecida pelo usuário via Google Drive; o nome do arquivo não comprova sua
+origem oficial. O pipeline registra hash, tamanho, categorias de eleição, ano, turno,
+cargo e candidatos. A unidade é UF + município + zona + seção. Seleciona-se presidente,
+segundo turno e ano configurado somente após inventariar as categorias reais.
+O exterior é contabilizado e excluído das comparações regionais.
+
+O denominador é a soma dos votos dos dois candidatos por seção. Duplicidades e votos
+negativos, fracionários ou ausentes interrompem o processamento. Ausência de registro
+não equivale a zero: seções com um candidato ausente ficam em quarentena documentada.
+Seções sem votos válidos são registradas e não recebem proporção definida. Seções pequenas
+permanecem na análise principal. A sensibilidade usa menos de 30 votos, um corte operacional
+exploratório que deve ser reconsiderado à luz da distribuição observada.
+
+## Descritiva e dependência
+
+Cada seção tem peso igual na distribuição principal. As médias não correspondem à parcela
+agregada dos votos da região. São apresentados quantis, dispersão, tamanho e agrupamentos
+por zona, município e local. A fração da soma de quadrados entre grupos é descritiva,
+não um teste de independência, e depende do número de grupos. Não se aplicam testes
+de séries temporais a uma ordenação arbitrária de seções.
+
+## Seleção de limiares e inferência
+
+A grade inicial vai de P80 a P99, removendo limiares repetidos. Exigem-se 100 excessos
+e dez valores distintos. A regra exploratória escolhe o primeiro trecho de três limiares
+consecutivos com ICs de forma sobrepostos, escala modificada variando até 20% da maior
+magnitude e ajustes regulares. Ela equilibra estabilidade e amostra; **requer revisão
+visual do mean excess e dos diagnósticos**. Sem trecho elegível, não se força ajuste.
+Esses critérios são escolhas operacionais explícitas, sem garantia de validade assintótica.
+
+O ajuste usa máxima verossimilhança com `evd`. A curvatura é recalculada por diferenciação numérica em log-escala, com dois passos; ICs de Wald não regulares ou numericamente instáveis são omitidos. Erros-padrão e ICs de Wald sob independência
+são identificados como `iid`. O bootstrap reamostra zonas inteiras, preservando dependência
+interna, com seed fixa e 199 réplicas por padrão [@davison1997]. Requer ao menos 30 zonas
+e 80% de réplicas convergentes para reportar IC percentil. A seleção do limiar é mantida
+fixa: os intervalos não incorporam sua incerteza. Dependência entre zonas e municípios
+que cruzam zonas permanece uma limitação. Os dois candidatos são complementares por seção,
+e não constituem amostras independentes.
+
+O IC do endpoint só é exibido quando todas as réplicas convergentes têm $\xi<0$;
+se há réplicas sem endpoint finito, a incerteza não é reduzida à subamostra negativa.
+Não se atribui automaticamente validade inferencial a um bootstrap de ajuste não regular.
+
+## Blocos e níveis de retorno
+
+As zonas são identificadas por UF + NR_ZONA. A GEV só é tentada quando há pelo menos
+50 zonas, mediana de pelo menos 20 seções por zona, razão P90/P10 dos tamanhos até 4 e
+nenhum máximo igual a 1. São filtros exploratórios conservadores, não uma certificação
+de comparabilidade. A relação tamanho–máximo também exige avaliação substantiva.
+
+Para POT, com $\zeta_u=\Pr(P>u)$ estimada pela frequência de excessos,
+
+$$z_T=u+\frac{\sigma_u}{\xi}\{(T\zeta_u)^\xi-1\}.$$
+
+Em $\xi=0$ usa-se o limite logarítmico. Apenas $T\zeta_u>1$ e $T\le n$ são exibidos;
+isso limita extrapolações, mas não assegura precisão. A interpretação é uma ocorrência
+a cada $T$ **seções**, sob o modelo; na GEV, $T$ conta **zonas**. Não são anos e os
+níveis das duas abordagens não são diretamente intercambiáveis.
+
+# Resultados e discussão
+
+```{r}
+#| echo: false
+if(!ready)cat("**Análise ainda pendente.** Não há conclusões empíricas verificadas neste relatório. Execute o pipeline com a base fornecida antes de interpretar os modelos.")
+```
+
+## Caracterização e integridade
+
+```{r}
+#| echo: false
+tab("proveniencia")
+tab("auditoria_analitica")
+tab("candidatos_por_secao")
+```
+
+Verificar no apêndice as categorias observadas, as seções incompletas e as exclusões.
+Ausências sistemáticas de um candidato podem enviesar caudas; sua interpretação deve
+preceder qualquer conclusão regional.
+
+## Leitura da base e das caudas observadas
+
+```{r}
+#| echo: false
+#| results: asis
+if(ready) {
+  a<-fread("tables/auditoria_analitica.csv"); b<-fread("tables/descritiva.csv")
+  inc<-fread("tables/secoes_incompletas.csv"); ext<-fread("tables/exterior.csv")
+  cat("A base analítica nacional contém **",format(sum(a[candidato=="LULA",n]),big.mark=".",decimal.mark=","),
+      " seções completas**. Foram separadas ",nrow(inc)," seções com um candidato ausente e ",
+      ext$secoes," seções completas do exterior. Há ",sum(a[candidato=="LULA",pequenas]),
+      " seções brasileiras com menos de 30 votos válidos, mantidas na análise principal.\n\n",sep="")
+  for(c in unique(b$candidato)) {
+    t<-b[candidato==c][order(-P99)]
+    cat("Para **",c,"**, o percentil 99 das proporções por seção variou de ",
+        sprintf("%.1f%%",100*min(t$P99))," a ",sprintf("%.1f%%",100*max(t$P99)),
+        "; o maior valor desse quantil foi observado em ",t$REGIAO[1],
+        ". Essa comparação descreve um quantil marginal e não estabelece diferenças entre parâmetros de cauda.\n\n",sep="")
+  }
+  cat("Como os registros incompletos estão fora da base principal, a ausência de valores exatamente 0 ou 1 nessa base não demonstra que eles inexistam na população original. O cenário hipotético do apêndice explicita essa limitação.\n")
+}
+```
+
+## Distribuições regionais
+
+```{r}
+#| echo: false
+tab("descritiva")
+fig("histograma_nacional")
+fig("boxplots")
+fig("quantis_superiores")
+fig("tamanho_secoes")
+fig("tamanho_proporcao")
+```
+
+Histogramas ou densidades multimodais não demonstram por si sós domínios de atração
+distintos ou mecanismos eleitorais específicos.
+
+## Escolha dos thresholds e resultados GPD
+
+```{r}
+#| echo: false
+fig("threshold_mean_excess")
+fig("threshold_shape")
+fig("threshold_scale_mod")
+fig("threshold_excedencias")
+tab("gpd")
+tab("diagnosticos_quantitativos")
+```
+
+Os limiares escolhidos são sugestões da regra operacional. Examinar trechos lineares,
+amplitude dos intervalos e perda de excedências. Ajustes com massa em 1 ou forma não
+regular permanecem sinalizados e não sustentam extrapolação contínua automática.
+
+## Máximos de blocos e GEV
+
+```{r}
+#| echo: false
+tab("estrutura_blocos")
+fig("tamanho_blocos")
+fig("blocos_maximos")
+tab("gev")
+```
+
+Uma linha sem estimativas GEV documenta uma limitação da definição de bloco; não deve
+ser interpretada como ausência de concentrações extremas. Se os tamanhos não forem
+comparáveis, seria necessário estudar blocos padronizados ou modelos condicionais em
+um trabalho posterior, com justificativa própria.
+
+## Comparação GEV × GPD
+
+```{r}
+#| echo: false
+tab("comparacao_forma")
+fig("comparacao_forma")
+```
+
+A tabela compara as estimativas de xi e os ICs por bootstrap de zonas, quando disponíveis; os arquivos CSV mantêm também os erros-padrão iid e os status de ajuste. A distância máxima entre CDFs é um diagnóstico descritivo, sem p-valor iid. A sobreposição
+de ICs é apenas uma avaliação descritiva de compatibilidade, não um teste de igualdade.
+Os ajustes usam os mesmos dados e são dependentes. Ausência de sobreposição não substitui
+um contraste conjunto com sua covariância, e diferenças pontuais não estabelecem diferenças reais.
+
+## Endpoint, retorno e sensibilidades
+
+```{r}
+#| echo: false
+tab("niveis_retorno")
+tab("intervalos_cluster")
+tab("sensibilidade")
+tab("sensibilidade_ausencia_zero")
+tab("agrupamento_descritivo")
+```
+
+Um cenário adicional, explicitamente hipotético, completa com zero a linha ausente. Ele não altera a análise principal nem comprova que a omissão significa zero; mostra o impacto potencial sobre a massa em 100%.
+
+A sensibilidade compara limiares vizinhos e remove seções com menos de 30 votos ou zonas
+com menos de dez seções, sem alterar a análise principal. Filtros mudam a população
+observada e podem mudar o sentido da comparação. Níveis acima de 1, endpoints incompatíveis,
+massa no limite e falhas de convergência exigem restrição das interpretações.
+
+## Avaliação dos ajustes desta execução
+
+```{r}
+#| echo: false
+#| results: asis
+if(ready) {
+  g<-fread("tables/gpd.csv"); v<-fread("tables/gev.csv"); rt<-fread("tables/niveis_retorno.csv")
+  for(i in which(g$shape>=0))cat("O ajuste exploratório GPD para **",g$candidato[i]," / ",g$REGIAO[i],
+    "** produziu xi = ",sprintf("%.3f",g$shape[i]),
+    ". A aproximação possui cauda sem endpoint finito e não pode representar globalmente uma proporção limitada a 1; a estabilidade local não justifica extrapolação irrestrita.\n\n",sep="")
+  cat("Foram sinalizados ",sum(rt$nivel>1,na.rm=TRUE)," níveis de retorno acima de 100%; esses valores constituem evidência de inadequação para a extrapolação correspondente e não previsões eleitorais admissíveis.\n\n",sep="")
+  rejected<-unique(v[grepl("tamanhos_heterogeneos",status),REGIAO])
+  cat("A razão entre os tamanhos P90 e P10 das zonas ultrapassou o limite operacional em ",
+      paste(rejected,collapse=", "),". Assim, a comparação GEV–GPD não cobre uniformemente as cinco regiões.\n\n",sep="")
+  irregular<-v[status=="nao_regular"]
+  if(nrow(irregular))cat("A GEV não regular em ",paste(paste(irregular$REGIAO,irregular$candidato,sep=" / "),collapse=", "),
+      " exige cautela adicional: seus ICs de Wald e percentis bootstrap foram omitidos, pois bootstrap convencional não resolve automaticamente a não regularidade.\n",sep="")
+}
+```
+
+# Conclusão
+
+```{r}
+#| echo: false
+if(!ready) {
+  cat("As conclusões empíricas aguardam validação e processamento dos dados. Não se presume que GPD ou GEV sejam adequadas nem que haja diferenças regionais.")
+} else {
+  g<-fread("tables/gpd.csv"); v<-fread("tables/gev.csv")
+  cat("O processamento foi concluído. A GPD produziu",sum(g$status=="ajuste_exploratorio"),
+      "ajustes exploratórios sem alertas de massa no endpoint ou não regularidade, entre",nrow(g),
+      "grupos observados. A GEV produziu",sum(v$status=="ajuste_exploratorio"),
+      "ajustes exploratórios, entre",nrow(v),"grupos. A adequação final requer leitura dos diagnósticos e das sensibilidades.")
+}
+```
+
+As proporções são limitadas e discretas, a estrutura é transversal e há dependência
+geográfica. Os resultados descrevem a base observada e não identificam causas do voto.
+Uma síntese substantiva por região somente é defensável depois de verificar suporte,
+estabilidade, intervalos e adequação de cada ajuste.
+
+# Referências
+
+::: {#refs}
+:::

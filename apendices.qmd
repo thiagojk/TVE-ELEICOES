@@ -1,0 +1,32 @@
+---
+title: "Apêndices e diagnósticos"
+---
+
+# Auditorias e resultados completos
+
+```{r}
+#| echo: false
+#| results: asis
+ready<-file.exists("data/processed/CONCLUIDO")
+if(ready) {
+  for(f in list.files("tables",pattern="[.]csv$",full.names=TRUE)) {
+    if(file.info(f)$size>2) {
+      cat("\n\n## ",basename(f),"\n\n",sep="")
+      x<-data.table::fread(f)
+      if(nrow(x)>100)cat("Exibição limitada às primeiras 100 linhas; a tabela integral está no repositório.\n\n")
+      print(knitr::kable(head(x,100),digits=4))
+    }
+  }
+} else cat("Auditorias pendentes de execução completa.")
+```
+
+# Gráficos complementares
+
+```{r}
+#| echo: false
+#| results: asis
+if(ready) {
+  paths<-list.files("figures",pattern="[.]png$",full.names=TRUE)
+  for(f in paths)cat("\n\n### ",tools::file_path_sans_ext(basename(f)),"\n\n![](",f,"){width=100%}\n",sep="")
+}
+```

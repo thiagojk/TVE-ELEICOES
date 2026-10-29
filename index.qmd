@@ -1,0 +1,22 @@
+---
+title: "Concentrações extremas de votos por seção eleitoral"
+---
+
+Projeto acadêmico de Teoria dos Valores Extremos: análise descritiva das proporções de votos,
+POT/GPD e máximos por zona/GEV, para dois candidatos e cinco regiões brasileiras.
+
+```{r}
+#| echo: false
+if (file.exists("data/processed/CONCLUIDO")) {
+  cat("**Pipeline concluído em:**", readLines("data/processed/CONCLUIDO"))
+} else {
+  cat("**Análise pendente:** a base ainda precisa ser processada e validada. Este site não apresenta resultados eleitorais verificados.")
+}
+```
+
+Consulte o [relatório](relatorio.qmd), os [apêndices](apendices.qmd) e o
+[repositório com instruções de reprodução](https://github.com/thiagojk/TVE-ELEICOES).
+
+A identificação do arquivo como sendo de 2026 é informação fornecida pelo usuário;
+a origem, a natureza e as categorias serão verificadas no processamento, sem presumir autenticidade oficial.
+A análise não estabelece causas do comportamento eleitoral e não contém avaliações políticas.

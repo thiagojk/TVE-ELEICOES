@@ -1,0 +1,30 @@
+project:
+  type: website
+  output-dir: docs
+  render:
+    - index.qmd
+    - relatorio.qmd
+    - apendices.qmd
+lang: pt-BR
+website:
+  title: "TVE — Concentrações eleitorais"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Início
+      - href: relatorio.qmd
+        text: Relatório
+      - href: apendices.qmd
+        text: Apêndices
+format:
+  html:
+    theme: cosmo
+    toc: true
+    number-sections: true
+    code-fold: true
+    embed-resources: false
+    fig-responsive: true
+bibliography: referencias.bib
+execute:
+  warning: true
+  error: false
