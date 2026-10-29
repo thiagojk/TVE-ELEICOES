@@ -3,13 +3,13 @@ describe_data <- function(d, cfg) {
     setNames(quantile(p, c(.25,.5,.75,.8,.9,.95,.975,.99)), c("Q1","mediana","Q3","P80","P90","P95","P975","P99")), maximo = max(p)))
   write_table(d[, stats(p), by = .(REGIAO, candidato)], "descritiva")
   write_table(d[, stats(total_validos), by = .(REGIAO, candidato)], "tamanho_secoes")
-  save_plot(ggplot(d, aes(p, fill = candidato)) + geom_histogram(binwidth = .02, position = "identity", alpha = .5) +
+  save_plot(ggplot(d, aes(p, fill = candidato)) + geom_histogram(binwidth = .02, position = "identity", alpha = .7) + scale_candidate_fill() +
               labs(x = "Proporção de votos válidos", y = "Seções"), "histograma_nacional")
-  save_plot(ggplot(d, aes(p, fill = candidato)) + geom_histogram(binwidth = .02) + facet_grid(REGIAO ~ candidato) +
+  save_plot(ggplot(d, aes(p, fill = candidato)) + geom_histogram(binwidth = .02) + scale_candidate_fill() + facet_grid(REGIAO ~ candidato) +
               labs(x = "Proporção", y = "Seções"), "histogramas_regionais", height = 10)
   save_plot(ggplot(d, aes(p, colour = REGIAO)) + geom_density(bounds = c(0,1)) + facet_wrap(~candidato) +
               labs(x = "Proporção", y = "Densidade descritiva"), "densidades")
-  save_plot(ggplot(d, aes(REGIAO, p, fill = candidato)) + geom_boxplot(outlier.shape = NA) +
+  save_plot(ggplot(d, aes(REGIAO, p, fill = candidato)) + geom_boxplot(outlier.shape = NA) + scale_candidate_fill() +
               labs(x = NULL, y = "Proporção"), "boxplots")
   save_plot(ggplot(unique(d, by = c("SG_UF","CD_MUNICIPIO","NR_ZONA","NR_SECAO")), aes(total_validos)) +
               geom_histogram(bins = 70) + labs(x = "Votos válidos por seção", y = "Seções"), "tamanho_secoes")

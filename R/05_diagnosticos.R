@@ -2,7 +2,7 @@ diagnose_models <- function(d, blocks, gpd, gev, cfg) {
   g <- gpd$grid
   for(v in intersect(c("mean_excess","shape","scale_mod","excedencias"),names(g))) {
     fig <- ggplot(g,aes(x=u,y=.data[[v]],colour=candidato)) + geom_line(na.rm=TRUE) +
-      geom_point(na.rm=TRUE) + facet_wrap(~REGIAO,scales="free_y") + labs(y=v,x="Threshold u")
+      geom_point(na.rm=TRUE) + facet_wrap(~REGIAO,scales="free_y") + scale_candidate_colour() + labs(y=v,x="Threshold u")
     if(v %in% c("shape","mean_excess")) {
       se <- if(v=="shape") "shape_se_iid" else "mean_excess_se"
       fig <- fig + geom_errorbar(aes(ymin=.data[[v]]-1.96*.data[[se]],ymax=.data[[v]]+1.96*.data[[se]]),alpha=.25,na.rm=TRUE)
@@ -14,6 +14,7 @@ diagnose_models <- function(d, blocks, gpd, gev, cfg) {
     fits <- if(model=="GPD")gpd$fits else gev$fits
     for(key in names(fits)) {
       f<-fits[[key]]; e<-f$z$fit$estimate
+      candidate_colour <- unname(candidate_colours[f$candidate])
       if(model=="GPD") {
         x<-d[REGIAO==f$region & candidato==f$candidate,p]; y<-sort(x[x>f$u]-f$u)
         theo<-evd::qgpd(ppoints(length(y)),scale=e["scale"],shape=e["shape"])
@@ -38,18 +39,19 @@ diagnose_models <- function(d, blocks, gpd, gev, cfg) {
         erro_quantil_99=as.numeric(quantile(theo,.99)-quantile(y,.99)))
       prefix<-paste0(tolower(model),"_",gsub("[^a-zA-Z0-9]","_",key))
       diag<-data.table(observado=y,teorico=theo,empirico=ppoints(length(y)),cdf=cdf)
-      save_plot(ggplot(diag,aes(teorico,observado))+geom_point(alpha=.3)+geom_abline(slope=1,intercept=0)+labs(title=key),paste0(prefix,"_qq"))
-      save_plot(ggplot(diag,aes(empirico,cdf))+geom_point(alpha=.3)+geom_abline(slope=1,intercept=0)+labs(title=key),paste0(prefix,"_pp"))
-      save_plot(ggplot(diag,aes(observado))+stat_ecdf(aes(colour="Empírica"))+geom_line(aes(y=cdf,colour="Ajustada"))+
+      save_plot(ggplot(diag,aes(teorico,observado))+geom_point(alpha=.3,colour=candidate_colour)+geom_abline(slope=1,intercept=0)+labs(title=key),paste0(prefix,"_qq"))
+      save_plot(ggplot(diag,aes(empirico,cdf))+geom_point(alpha=.3,colour=candidate_colour)+geom_abline(slope=1,intercept=0)+labs(title=key),paste0(prefix,"_pp"))
+      save_plot(ggplot(diag,aes(observado))+stat_ecdf(aes(linetype="Empírica"),colour=candidate_colour)+geom_line(aes(y=cdf,linetype="Ajustada"),colour=candidate_colour)+
+        scale_linetype_manual(values=c("Empírica"="solid","Ajustada"="dashed"),name=NULL)+
         labs(y="Distribuição acumulada",title=key),paste0(prefix,"_cdf"))
       densityfun<-if(model=="GPD")function(v)evd::dgpd(v,scale=e["scale"],shape=e["shape"]) else
         function(v)evd::dgev(v,loc=e["loc"],scale=e["scale"],shape=e["shape"])
-      save_plot(ggplot(diag,aes(observado))+geom_histogram(aes(y=after_stat(density)),bins=30)+
-        stat_function(fun=densityfun,colour="#a52a2a")+labs(title=key,y="Densidade"),paste0(prefix,"_density"))
+      save_plot(ggplot(diag,aes(observado))+geom_histogram(aes(y=after_stat(density)),bins=30,fill=candidate_colour,alpha=.6)+
+        stat_function(fun=densityfun,colour=candidate_colour)+labs(title=key,y="Densidade"),paste0(prefix,"_density"))
       rt<-data.table(REGIAO=f$region,candidato=f$candidate,modelo=model,T=T,nivel=ret,unidade=unit,
         endpoint=as.numeric(endpoint),fora_suporte=ret>1 | endpoint<max(x),massa_um=mean(x==1))
       levels[[paste(model,key)]]<-rt
-      if(nrow(rt))save_plot(ggplot(rt,aes(T,nivel))+geom_line()+geom_point()+scale_x_log10()+
+      if(nrow(rt))save_plot(ggplot(rt,aes(T,nivel))+geom_line(colour=candidate_colour)+geom_point(colour=candidate_colour)+scale_x_log10()+
         geom_hline(yintercept=1,linetype=2)+labs(x=paste("Uma ocorrência a cada T",unit),y="Nível estimado",title=key),paste0(prefix,"_retorno"))
     }
   }

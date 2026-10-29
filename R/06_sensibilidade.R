@@ -59,9 +59,9 @@ sensitivity_analysis <- function(d,blocks,gpd,gev,cfg) {
   if(nrow(cis))comp<-merge(comp,cis,by=c("REGIAO","candidato","modelo"),all.x=TRUE)
   write_table(comp,"comparacao_forma")
   if(all(c("shape","shape_lo_cluster","shape_hi_cluster")%in%names(comp)))
-    save_plot(ggplot(comp,aes(modelo,shape,colour=modelo))+geom_point(na.rm=TRUE)+
+    save_plot(ggplot(comp,aes(modelo,shape,colour=candidato))+geom_point(na.rm=TRUE)+
       geom_errorbar(aes(ymin=shape_lo_cluster,ymax=shape_hi_cluster),width=.15,na.rm=TRUE)+
-      facet_grid(REGIAO~candidato)+geom_hline(yintercept=0,linetype=2)+labs(y="Xi e IC bootstrap por zona",x=NULL),"comparacao_forma",height=10)
+      facet_grid(REGIAO~candidato)+scale_candidate_colour()+geom_hline(yintercept=0,linetype=2)+labs(y="Xi e IC bootstrap por zona",x=NULL),"comparacao_forma",height=10)
 }
 
 missing_zero_scenario <- function(d,cfg) {

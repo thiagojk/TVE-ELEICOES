@@ -1,5 +1,9 @@
 suppressPackageStartupMessages({library(data.table); library(ggplot2)})
 options(stringsAsFactors = FALSE)
+# Identidade visual fixa por candidato, independente da ordem dos dados.
+candidate_colours <- c("LULA" = "#FF0000", "FLAVIO BOLSONARO" = "#0066FF")
+scale_candidate_colour <- function() scale_colour_manual(values = candidate_colours, name = "Candidato")
+scale_candidate_fill <- function() scale_fill_manual(values = candidate_colours, name = "Candidato")
 normalize_name <- function(x) toupper(trimws(iconv(x, to = "ASCII//TRANSLIT")))
 write_table <- function(x, name) fwrite(x, file.path("tables", paste0(name, ".csv")))
 save_plot <- function(g, name, width = 10, height = 6) {
